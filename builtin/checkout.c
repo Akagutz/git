@@ -345,6 +345,7 @@ static int checkout_worktree(const struct checkout_opts *opts)
 	state.refresh_cache = 1;
 	state.istate = &the_index;
 
+	enable_fscache(1);
 	enable_delayed_checkout(&state);
 	for (pos = 0; pos < active_nr; pos++) {
 		struct cache_entry *ce = active_cache[pos];
@@ -368,6 +369,7 @@ static int checkout_worktree(const struct checkout_opts *opts)
 	remove_marked_cache_entries(&the_index, 1);
 	remove_scheduled_dirs();
 	errs |= finish_delayed_checkout(&state, &nr_checkouts);
+	enable_fscache(0);
 
 	if (opts->count_checkout_paths) {
 		if (nr_unmerged)
