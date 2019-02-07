@@ -94,7 +94,12 @@ test_expect_success 'fast-export --show-original-ids | git fast-import' '
 	test $MUSS = $(git rev-parse --verify refs/tags/muss)
 '
 
-test_expect_success 'reencoding iso-8859-7' '
+test_lazy_prereq UTF8_ONLY_ENV '
+	. "$TEST_DIRECTORY"/t3901/8859-1.txt &&
+	! git var GIT_AUTHOR_IDENT | grep "Áéí"
+'
+
+test_expect_success !UTF8_ONLY_ENV 'reencoding iso-8859-7' '
 
 	test_when_finished "git reset --hard HEAD~1" &&
 	test_config i18n.commitencoding iso-8859-7 &&
@@ -118,7 +123,7 @@ test_expect_success 'reencoding iso-8859-7' '
 		 ! grep ^encoding actual)
 '
 
-test_expect_success 'aborting on iso-8859-7' '
+test_expect_success !UTF8_ONLY_ENV 'aborting on iso-8859-7' '
 
 	test_when_finished "git reset --hard HEAD~1" &&
 	test_config i18n.commitencoding iso-8859-7 &&
@@ -127,7 +132,7 @@ test_expect_success 'aborting on iso-8859-7' '
 	test_must_fail git fast-export --reencode=abort wer^..wer >iso-8859-7.fi
 '
 
-test_expect_success 'preserving iso-8859-7' '
+test_expect_success !UTF8_ONLY_ENV 'preserving iso-8859-7' '
 
 	test_when_finished "git reset --hard HEAD~1" &&
 	test_config i18n.commitencoding iso-8859-7 &&
@@ -150,7 +155,7 @@ test_expect_success 'preserving iso-8859-7' '
 		 grep ^encoding actual)
 '
 
-test_expect_success 'encoding preserved if reencoding fails' '
+test_expect_success!UTF8_ONLY_ENV  'encoding preserved if reencoding fails' '
 
 	test_when_finished "git reset --hard HEAD~1" &&
 	test_config i18n.commitencoding iso-8859-7 &&
@@ -170,6 +175,10 @@ test_expect_success 'encoding preserved if reencoding fails' '
 		 grep $(printf "\360") actual &&
 		 grep $(printf "\377") actual)
 '
+
+# The subsequent tests validate timestamps, and we may just have skipped a tick
+test_have_prereq !UTF8_ONLY_ENV ||
+test_tick
 
 test_expect_success 'import/export-marks' '
 
